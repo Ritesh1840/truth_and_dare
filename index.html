@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Truth and Dare Game</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Truth and Dare</h1>
+      <p>The ultimate adult game for fun and bonding!</p>
+    </header>
+
+    <main>
+      <!-- Player Setup Section -->
+      <div class="setup">
+        <h2>Enter Players</h2>
+        <input type="text" id="player-input" placeholder="Enter player name">
+        <button id="add-player">Add Player</button>
+        <ul id="player-list"></ul>
+        <button id="start-game" disabled>Start Game</button>
+      </div>
+
+      <!-- Game Section -->
+      <div class="game hidden">
+        <h2>Spin the Wheel</h2>
+        <div class="spinner">
+          <button id="spin">Spin</button>
+          <p id="current-player">?</p>
+        </div>
+        <div class="task">
+          <button id="truth">Truth</button>
+          <button id="dare">Dare</button>
+          <p id="task-display"></p>
+        </div>
+        <button id="reset-game">Reset Game</button>
+      </div>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
