@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Truth & Dare — A fun, modern party game for friends and family"/>
+<title>Truth & Dare ✨</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+/* ===== CSS VARIABLES ===== */
+:root {
+  --bg: #0a0a14;
+  --bg2: #10101f;
+  --bg3: #16162a;
+  --surface: #1c1c34;
+  --surface2: #24244a;
+  --border: rgba(255,255,255,0.08);
+  --truth-from: #6c63ff;
+  --truth-to: #a78bfa;
+  --dare-from: #f43f5e;
+  --dare-to: #fb923c;
+  --accent: #38bdf8;
+  --gold: #fbbf24;
+  --text: #f1f0ff;
+  --text2: #a9a8c8;
+  --text3: #6b6a8a;
+  --radius: 20px;
+  --radius-sm: 12px;
+  --shadow: 0 8px 40px rgba(0,0,0,0.5);
+  --shadow-glow-truth: 0 0 40px rgba(108,99,255,0.3);
+  --shadow-glow-dare: 0 0 40px rgba(244,63,94,0.3);
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+[data-theme="light"] {
+  --bg: #f0eeff;
+  --bg2: #e8e5ff;
+  --bg3: #ddd9ff;
+  --surface: #ffffff;
+  --surface2: #f5f3ff;
+  --border: rgba(0,0,0,0.08);
+  --text: #1a1830;
+  --text2: #4a4870;
+  --text3: #8a88aa;
+  --shadow: 0 8px 40px rgba(108,99,255,0.15);
+}
+
+/* ===== RESET ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background var(--transition), color var(--transition);
+}
+
+/* ===== BACKGROUND ===== */
+.bg-orbs {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+}
+.orb {
+  position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.12;
+  animation: float 10s ease-in-out infinite;
+}
+.orb-1 { width: 500px; height: 500px; background: #6c63ff; top: -150px; left: -100px; animation-delay: 0s; }
+.orb-2 { width: 400px; height: 400px; background: #f43f5e; bottom: -100px; right: -80px; animation-delay: -4s; }
+.orb-3 { width: 300px; height: 300px; background: #38bdf8; top: 50%; left: 60%; animation-delay: -7s; }
+[data-theme="light"] .orb { opacity: 0.06; }
+
+@keyframes float {
+  0%,100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-30px) scale(1.05); }
+}
+
+/* ===== LAYOUT ===== */
+#app {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+}
+
+/* ===== TOP BAR ===== */
+.topbar {
+  width: 100%; max-width: 1000px;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 24px 0;
+}
+.logo {
+  font-family: var(--font-display);
+  font-weight: 800; font-size: 1.3rem;
+  background: linear-gradient(135deg, var(--truth-from), var(--dare-from));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  letter-spacing: -0.02em;
+}
+.topbar-actions { display: flex; gap: 10px; align-items: center; }
+.icon-btn {
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text2); border-radius: 12px;
+  width: 42px; height: 42px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 1.1rem;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.icon-btn:hover { background: var(--surface2); color: var(--text); transform: scale(1.05); }
+
+/* ===== SCREENS ===== */
+.screen {
+  display: none; width: 100%; max-width: 680px;
+  padding: 24px 20px 40px;
+  animation: fadeUp 0.4s ease;
+  flex: 1;
+}
+.screen.active { display: flex; flex-direction: column; align-items: center; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== HOME SCREEN ===== */
+.home-hero { text-align: center; padding: 30px 0 20px; }
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 50px; padding: 6px 14px;
+  font-size: 0.78rem; color: var(--text2);
+  margin-bottom: 20px; letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.hero-badge span { font-size: 1rem; }
+.home-hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 8vw, 4.5rem);
+  font-weight: 800; line-height: 1.05;
+  letter-spacing: -0.04em;
+  margin-bottom: 14px;
+}
+.h1-truth {
+  background: linear-gradient(135deg, var(--truth-from), var(--truth-to));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.h1-dare {
+  background: linear-gradient(135deg, var(--dare-from), var(--dare-to));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.hero-sub { color: var(--text2); font-size: 1rem; line-height: 1.6; max-width: 380px; margin: 0 auto; }
+
+.home-cards {
+  display: flex; gap: 14px; margin: 30px 0 24px;
+  width: 100%; justify-content: center; flex-wrap: wrap;
+}
+.home-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px;
+  flex: 1; min-width: 130px; max-width: 180px;
+  text-align: center; cursor: pointer;
+  transition: all var(--transition);
+}
+.home-card:hover { transform: translateY(-4px); background: var(--surface2); }
+.home-card .card-icon { font-size: 2rem; margin-bottom: 8px; display: block; }
+.home-card h3 { font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; }
+.home-card p { font-size: 0.75rem; color: var(--text2); margin-top: 4px; }
+
+.btn-play {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: linear-gradient(135deg, var(--truth-from), var(--dare-from));
+  color: white; border: none; border-radius: var(--radius);
+  padding: 18px 48px; font-family: var(--font-display);
+  font-size: 1.1rem; font-weight: 700; cursor: pointer;
+  width: 100%; max-width: 320px;
+  transition: all var(--transition);
+  box-shadow: 0 4px 30px rgba(108,99,255,0.4);
+}
+.btn-play:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 40px rgba(108,99,255,0.5); }
+.btn-play:active { transform: scale(0.98); }
+
+/* ===== SETUP SCREEN ===== */
+.setup-header { width: 100%; text-align: center; margin-bottom: 28px; }
+.setup-header h2 { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; margin-bottom: 6px; }
+.setup-header p { color: var(--text2); font-size: 0.9rem; }
+
+.section-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 22px;
+  width: 100%; margin-bottom: 16px;
+}
+.section-label {
+  font-family: var(--font-display); font-size: 0.8rem;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--text3); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+
+.player-input-row {
+  display: flex; gap: 10px; margin-bottom: 14px;
+}
+.player-input {
+  flex: 1; background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 16px;
+  color: var(--text); font-family: var(--font-body); font-size: 0.95rem;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  outline: none;
+}
+.player-input:focus { border-color: var(--truth-from); box-shadow: 0 0 0 3px rgba(108,99,255,0.15); }
+.player-input::placeholder { color: var(--text3); }
+.btn-add {
+  background: linear-gradient(135deg, var(--truth-from), var(--truth-to));
+  color: white; border: none; border-radius: var(--radius-sm);
+  padding: 12px 18px; font-size: 1.2rem; cursor: pointer;
+  transition: all var(--transition); flex-shrink: 0;
+}
+.btn-add:hover { transform: scale(1.05); }
+
+.players-list { display: flex; flex-wrap: wrap; gap: 8px; min-height: 32px; }
+.player-tag {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: linear-gradient(135deg, rgba(108,99,255,0.15), rgba(167,139,250,0.1));
+  border: 1px solid rgba(108,99,255,0.3);
+  border-radius: 50px; padding: 6px 12px 6px 14px;
+  font-size: 0.85rem; font-weight: 500; color: var(--truth-to);
+  animation: popIn 0.25s ease;
+}
+@keyframes popIn { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.player-tag button {
+  background: none; border: none; color: var(--truth-to);
+  cursor: pointer; font-size: 0.95rem; line-height: 1;
+  opacity: 0.6; transition: opacity var(--transition);
+  padding: 0; display: flex; align-items: center;
+}
+.player-tag button:hover { opacity: 1; }
+
+/* Difficulty & Category chips */
+.chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 50px; padding: 7px 16px;
+  font-size: 0.82rem; font-weight: 500; color: var(--text2);
+  cursor: pointer; transition: all var(--transition); user-select: none;
+}
+.chip.active[data-type="diff"] {
+  background: linear-gradient(135deg, var(--truth-from), var(--truth-to));
+  border-color: transparent; color: white;
+}
+.chip.active[data-type="cat"] {
+  background: linear-gradient(135deg, var(--dare-from), var(--dare-to));
+  border-color: transparent; color: white;
+}
+.chip[data-val="spicy"].active {
+  background: linear-gradient(135deg, #f97316, #ef4444) !important;
+  border-color: transparent !important; color: white !important;
+  box-shadow: 0 0 14px rgba(249,115,22,0.45);
+  animation: spicyPulse 1.6s ease-in-out infinite;
+}
+@keyframes spicyPulse {
+  0%,100% { box-shadow: 0 0 10px rgba(249,115,22,0.4); }
+  50%      { box-shadow: 0 0 22px rgba(249,115,22,0.7); }
+}
+.chip:hover:not(.active) { border-color: var(--truth-from); color: var(--text); }
+
+.btn-start-game {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: linear-gradient(135deg, var(--truth-from), var(--dare-from));
+  color: white; border: none; border-radius: var(--radius);
+  padding: 18px; font-family: var(--font-display);
+  font-size: 1.05rem; font-weight: 700; cursor: pointer;
+  width: 100%; margin-top: 8px;
+  transition: all var(--transition);
+  box-shadow: 0 4px 30px rgba(108,99,255,0.35);
+}
+.btn-start-game:hover { transform: translateY(-2px); box-shadow: 0 8px 40px rgba(108,99,255,0.5); }
+.btn-start-game:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* ===== GAME SCREEN ===== */
+.game-header {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.turn-info { display: flex; flex-direction: column; }
+.turn-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); }
+.turn-player {
+  font-family: var(--font-display); font-size: 1.3rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--truth-to), var(--dare-to));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.turn-counter {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 50px; padding: 6px 14px;
+  font-size: 0.8rem; color: var(--text2); font-weight: 500;
+}
+
+/* Player list dots */
+.players-dots {
+  display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+  margin-bottom: 20px; width: 100%;
+}
+.player-dot {
+  height: 6px; border-radius: 3px;
+  background: var(--surface2); transition: all var(--transition);
+  flex: 1; max-width: 60px;
+}
+.player-dot.active {
+  background: linear-gradient(90deg, var(--truth-from), var(--dare-from));
+}
+
+/* Card area */
+.card-area {
+  width: 100%; perspective: 1000px;
+  margin-bottom: 24px;
+}
+.game-card {
+  position: relative; width: 100%; min-height: 260px;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: default;
+  border-radius: var(--radius);
+}
+.game-card.flipped { transform: rotateY(180deg); }
+
+.card-front, .card-back {
+  position: absolute; inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: var(--radius);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 32px 28px; text-align: center;
+  box-shadow: var(--shadow);
+  min-height: 260px;
+}
+.card-front {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  gap: 12px;
+}
+.card-front-icon { font-size: 3.5rem; margin-bottom: 8px; }
+.card-front-text { font-family: var(--font-display); font-size: 1.1rem; font-weight: 600; color: var(--text2); }
+.card-front-sub { font-size: 0.82rem; color: var(--text3); }
+
+.card-back { transform: rotateY(180deg); gap: 16px; }
+.card-back.truth {
+  background: linear-gradient(135deg, #1a1540 0%, #2d2060 100%);
+  border: 1px solid rgba(108,99,255,0.3);
+  box-shadow: var(--shadow), var(--shadow-glow-truth);
+}
+.card-back.dare {
+  background: linear-gradient(135deg, #2a0f1a 0%, #4a1530 100%);
+  border: 1px solid rgba(244,63,94,0.3);
+  box-shadow: var(--shadow), var(--shadow-glow-dare);
+}
+.card-type-badge {
+  font-family: var(--font-display); font-size: 0.7rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.2em;
+  padding: 4px 14px; border-radius: 50px;
+}
+.card-back.truth .card-type-badge {
+  background: rgba(108,99,255,0.2); color: var(--truth-to); border: 1px solid rgba(108,99,255,0.3);
+}
+.card-back.dare .card-type-badge {
+  background: rgba(244,63,94,0.2); color: #fb7185; border: 1px solid rgba(244,63,94,0.3);
+}
+.card-question {
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 3.5vw, 1.4rem);
+  font-weight: 700; line-height: 1.4;
+  color: var(--text);
+}
+.card-difficulty {
+  font-size: 0.75rem; color: var(--text3);
+  display: flex; align-items: center; gap: 4px;
+}
+.diff-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+
+/* Main action buttons */
+.action-btns {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  width: 100%; margin-bottom: 14px;
+}
+.btn-truth, .btn-dare {
+  border: none; border-radius: var(--radius);
+  padding: 20px 14px;
+  font-family: var(--font-display); font-size: 1.1rem; font-weight: 800;
+  cursor: pointer; transition: all var(--transition);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; position: relative; overflow: hidden; color: white;
+}
+.btn-truth {
+  background: linear-gradient(135deg, var(--truth-from), var(--truth-to));
+  box-shadow: 0 4px 24px rgba(108,99,255,0.4);
+}
+.btn-dare {
+  background: linear-gradient(135deg, var(--dare-from), var(--dare-to));
+  box-shadow: 0 4px 24px rgba(244,63,94,0.4);
+}
+.btn-truth:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(108,99,255,0.55); }
+.btn-dare:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(244,63,94,0.55); }
+.btn-truth:active, .btn-dare:active { transform: scale(0.97); }
+.btn-icon { font-size: 1.8rem; }
+.btn-label { font-size: 1rem; }
+.btn-desc { font-size: 0.7rem; opacity: 0.75; font-family: var(--font-body); font-weight: 400; }
+
+/* Ripple effect */
+.ripple {
+  position: absolute; border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  transform: scale(0); animation: ripple 0.6s linear;
+  pointer-events: none;
+}
+@keyframes ripple { to { transform: scale(4); opacity: 0; } }
+
+/* Secondary actions */
+.secondary-btns {
+  display: flex; gap: 10px; width: 100%; flex-wrap: wrap;
+}
+.btn-secondary {
+  flex: 1; min-width: 100px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text2); border-radius: var(--radius-sm);
+  padding: 12px 16px; font-family: var(--font-body);
+  font-size: 0.85rem; font-weight: 500; cursor: pointer;
+  transition: all var(--transition);
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+}
+.btn-secondary:hover { background: var(--surface2); color: var(--text); border-color: var(--truth-from); }
+
+/* ===== RULES SCREEN ===== */
+.rules-header { text-align: center; margin-bottom: 28px; padding-top: 16px; width: 100%; }
+.rules-header h2 { font-family: var(--font-display); font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
+.rules-list { display: flex; flex-direction: column; gap: 14px; width: 100%; }
+.rule-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 18px 20px;
+  display: flex; gap: 16px; align-items: flex-start;
+}
+.rule-num {
+  background: linear-gradient(135deg, var(--truth-from), var(--dare-from));
+  color: white; border-radius: 8px;
+  width: 32px; height: 32px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 0.85rem; font-weight: 800;
+}
+.rule-content h4 { font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
+.rule-content p { font-size: 0.83rem; color: var(--text2); line-height: 1.5; }
+
+/* ===== SETTINGS SCREEN ===== */
+.settings-header { text-align: center; margin-bottom: 28px; padding-top: 16px; width: 100%; }
+.settings-header h2 { font-family: var(--font-display); font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
+.setting-row {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 16px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px; width: 100%;
+}
+.setting-info { flex: 1; }
+.setting-info h4 { font-size: 0.92rem; font-weight: 600; margin-bottom: 2px; }
+.setting-info p { font-size: 0.78rem; color: var(--text2); }
+/* Toggle switch */
+.toggle-switch { position: relative; width: 48px; height: 26px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-track {
+  position: absolute; inset: 0; cursor: pointer;
+  background: var(--surface2); border-radius: 13px;
+  transition: background var(--transition);
+}
+.toggle-track::after {
+  content: ''; position: absolute;
+  width: 20px; height: 20px; left: 3px; top: 3px;
+  background: white; border-radius: 50%;
+  transition: transform var(--transition);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+input:checked + .toggle-track { background: linear-gradient(90deg, var(--truth-from), var(--dare-from)); }
+input:checked + .toggle-track::after { transform: translateX(22px); }
+
+/* ===== END SCREEN ===== */
+.end-screen { text-align: center; padding-top: 20px; }
+.end-trophy { font-size: 5rem; margin-bottom: 16px; animation: bounce 1s ease infinite alternate; }
+@keyframes bounce { from { transform: scale(1); } to { transform: scale(1.12); } }
+.end-title { font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; margin-bottom: 8px; }
+.end-sub { color: var(--text2); margin-bottom: 32px; line-height: 1.6; }
+.end-stats {
+  display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+  margin-bottom: 32px; width: 100%;
+}
+.end-stat {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 16px 24px; flex: 1; min-width: 110px;
+}
+.stat-num {
+  font-family: var(--font-display); font-size: 2rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--truth-to), var(--dare-to));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.stat-label { font-size: 0.75rem; color: var(--text3); margin-top: 2px; }
+.btn-play-again {
+  background: linear-gradient(135deg, var(--truth-from), var(--dare-from));
+  color: white; border: none; border-radius: var(--radius);
+  padding: 18px 40px; font-family: var(--font-display);
+  font-size: 1.05rem; font-weight: 700; cursor: pointer;
+  transition: all var(--transition); margin-right: 12px;
+  box-shadow: 0 4px 30px rgba(108,99,255,0.35);
+}
+.btn-play-again:hover { transform: translateY(-2px); box-shadow: 0 8px 40px rgba(108,99,255,0.5); }
+.btn-home {
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); border-radius: var(--radius);
+  padding: 18px 28px; font-family: var(--font-display);
+  font-size: 1rem; font-weight: 600; cursor: pointer;
+  transition: all var(--transition);
+}
+.btn-home:hover { background: var(--surface2); }
+
+/* ===== CONFETTI ===== */
+#confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 999; }
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); border-radius: var(--radius-sm);
+  padding: 12px 20px; font-size: 0.85rem; font-weight: 500;
+  box-shadow: var(--shadow); z-index: 1000;
+  opacity: 0; transition: all 0.3s ease; white-space: nowrap;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===== BACK BTN ===== */
+.btn-back {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text2); border-radius: var(--radius-sm);
+  padding: 10px 18px; font-size: 0.87rem; font-weight: 500;
+  cursor: pointer; transition: all var(--transition); align-self: flex-start;
+  margin-bottom: 16px;
+}
+.btn-back:hover { background: var(--surface2); color: var(--text); }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 480px) {
+  .action-btns { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn-truth, .btn-dare { padding: 16px 10px; }
+  .btn-icon { font-size: 1.5rem; }
+  .btn-label { font-size: 0.9rem; }
+  .home-hero h1 { font-size: 2.5rem; }
+  .secondary-btns { gap: 8px; }
+  .btn-secondary { font-size: 0.8rem; padding: 10px 12px; }
+  .end-btns { flex-direction: column; gap: 10px; }
+  .btn-play-again, .btn-home { width: 100%; margin-right: 0; }
+}
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar {
+  width: 100%; height: 4px; background: var(--surface2);
+  border-radius: 2px; margin-bottom: 16px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; background: linear-gradient(90deg, var(--truth-from), var(--dare-from));
+  border-radius: 2px; transition: width 0.5s ease;
+}
+
+/* ===== SPINNER ===== */
+.player-spin {
+  display: none; flex-direction: column; align-items: center;
+  justify-content: center; gap: 16px; padding: 24px;
+  width: 100%;
+}
+.player-spin.show { display: flex; animation: fadeUp 0.3s ease; }
+.spin-name {
+  font-family: var(--font-display); font-size: 2rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--truth-to), var(--dare-to));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  animation: pulse 0.6s ease infinite alternate;
+}
+@keyframes pulse { from { transform: scale(1); } to { transform: scale(1.05); } }
+.spin-sub { color: var(--text2); font-size: 0.9rem; }
+.btn-confirm {
+  background: linear-gradient(135deg, var(--truth-from), var(--dare-from));
+  color: white; border: none; border-radius: var(--radius);
+  padding: 16px 40px; font-family: var(--font-display);
+  font-size: 1rem; font-weight: 700; cursor: pointer;
+  transition: all var(--transition); margin-top: 4px;
+}
+.btn-confirm:hover { transform: scale(1.03); }
+</style>
+</head>
+<body>
+
+<!-- Background orbs -->
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<div id="app">
+  <!-- TOP BAR -->
+  <nav class="topbar">
+    <div class="logo">Truth&amp;Dare ✨</div>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="btnTheme" title="Toggle theme">🌙</button>
+      <button class="icon-btn" id="btnSound" title="Toggle sound">🔊</button>
+    </div>
+  </nav>
+
+  <!-- ===== HOME SCREEN ===== -->
+  <section class="screen active" id="screenHome">
+    <div class="home-hero">
+      <div class="hero-badge"><span>🎉</span> Party Game</div>
+      <h1><span class="h1-truth">Truth</span><br><span class="h1-dare">& Dare</span></h1>
+      <p class="hero-sub">The ultimate party game for friends &amp; family. Reveal secrets, accept dares, create memories.</p>
+    </div>
+
+    <div class="home-cards">
+      <div class="home-card" onclick="showScreen('screenSetup')">
+        <span class="card-icon">🎮</span>
+        <h3>Play</h3>
+        <p>Start a new game</p>
+      </div>
+      <div class="home-card" onclick="showScreen('screenRules')">
+        <span class="card-icon">📖</span>
+        <h3>Rules</h3>
+        <p>How to play</p>
+      </div>
+      <div class="home-card" onclick="showScreen('screenSettings')">
+        <span class="card-icon">⚙️</span>
+        <h3>Settings</h3>
+        <p>Customize game</p>
+      </div>
+    </div>
+
+    <button class="btn-play" onclick="showScreen('screenSetup')">
+      <span>🚀</span> Start Playing
+    </button>
+  </section>
+
+  <!-- ===== SETUP SCREEN ===== -->
+  <section class="screen" id="screenSetup">
+    <button class="btn-back" onclick="showScreen('screenHome')">← Back</button>
+    <div class="setup-header">
+      <h2>Setup Game</h2>
+      <p>Add players and choose your settings</p>
+    </div>
+
+    <div class="section-card">
+      <div class="section-label">👥 Players (2–10)</div>
+      <div class="player-input-row">
+        <input class="player-input" id="playerInput" type="text" placeholder="Enter player name..." maxlength="20"/>
+        <button class="btn-add" onclick="addPlayer()">＋</button>
+      </div>
+      <div class="players-list" id="playersList"></div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-label">⚡ Difficulty</div>
+      <div class="chip-group" id="diffGroup">
+        <div class="chip active" data-type="diff" data-val="easy" onclick="selectChip(this,'diff')">😊 Easy</div>
+        <div class="chip" data-type="diff" data-val="medium" onclick="selectChip(this,'diff')">🔥 Medium</div>
+        <div class="chip" data-type="diff" data-val="hard" onclick="selectChip(this,'diff')">💀 Hard</div>
+        <div class="chip" data-type="diff" data-val="all" onclick="selectChip(this,'diff')">🌈 Mixed</div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-label">🏷️ Categories</div>
+      <div class="chip-group" id="catGroup">
+        <div class="chip active" data-type="cat" data-val="fun" onclick="toggleCat(this)">🎉 Fun</div>
+        <div class="chip active" data-type="cat" data-val="funny" onclick="toggleCat(this)">😂 Funny</div>
+        <div class="chip active" data-type="cat" data-val="challenge" onclick="toggleCat(this)">💪 Challenge</div>
+        <div class="chip active" data-type="cat" data-val="icebreaker" onclick="toggleCat(this)">🧊 Icebreaker</div>
+        <div class="chip active" data-type="cat" data-val="deep" onclick="toggleCat(this)">💭 Deep</div>
+        <div class="chip" data-type="cat" data-val="spicy" onclick="toggleCat(this)" style="border-color:rgba(251,146,60,0.4); color:#fb923c;">🌶️ Spicy</div>
+      </div>
+    </div>
+
+    <button class="btn-start-game" id="btnStartGame" onclick="startGame()" disabled>
+      🎮 Start Game
+    </button>
+  </section>
+
+  <!-- ===== GAME SCREEN ===== -->
+  <section class="screen" id="screenGame">
+    <div class="game-header" style="width:100%">
+      <div class="turn-info">
+        <span class="turn-label">Current Player</span>
+        <span class="turn-player" id="currentPlayerName">—</span>
+      </div>
+      <div class="turn-counter" id="turnCounter">Turn 1</div>
+    </div>
+
+    <div class="players-dots" id="playersDots"></div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+    <!-- Player spin reveal -->
+    <div class="player-spin" id="playerSpinArea">
+      <div style="font-size:3rem">🎲</div>
+      <div class="spin-name" id="spinName">Player!</div>
+      <div class="spin-sub">It's your turn!</div>
+      <button class="btn-confirm" onclick="confirmTurn()">I'm Ready!</button>
+    </div>
+
+    <!-- Card + action area (hidden until spin confirmed) -->
+    <div id="gamePlayArea" style="width:100%; display:none; flex-direction:column; align-items:center; gap:16px;">
+      <div class="card-area">
+        <div class="game-card" id="gameCard">
+          <div class="card-front">
+            <div class="card-front-icon">🃏</div>
+            <div class="card-front-text">Choose Truth or Dare</div>
+            <div class="card-front-sub">Tap a button below to reveal your challenge</div>
+          </div>
+          <div class="card-back" id="cardBack">
+            <div class="card-type-badge" id="cardTypeBadge">Truth</div>
+            <div class="card-question" id="cardQuestion">Loading...</div>
+            <div class="card-difficulty" id="cardDiffLabel"><div class="diff-dot"></div> Easy</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-btns" id="actionBtns">
+        <button class="btn-truth" onclick="pickCard('truth',event)">
+          <span class="btn-icon">🤔</span>
+          <span class="btn-label">Truth</span>
+          <span class="btn-desc">Answer honestly</span>
+        </button>
+        <button class="btn-dare" onclick="pickCard('dare',event)">
+          <span class="btn-icon">🎯</span>
+          <span class="btn-label">Dare</span>
+          <span class="btn-desc">Accept the challenge</span>
+        </button>
+      </div>
+
+      <div class="secondary-btns" id="secondaryBtns" style="display:none">
+        <button class="btn-secondary" onclick="skipQuestion()">↩️ Skip</button>
+        <button class="btn-secondary" onclick="nextTurn()">⏭ Next Player</button>
+        <button class="btn-secondary" onclick="resetCard()">🔄 New Question</button>
+      </div>
+    </div>
+
+    <div style="margin-top:auto; padding-top:16px; width:100%; display:flex; justify-content:center;">
+      <button class="btn-secondary" onclick="endGame()" style="max-width:200px; color:var(--text3)">🏁 End Game</button>
+    </div>
+  </section>
+
+  <!-- ===== RULES SCREEN ===== -->
+  <section class="screen" id="screenRules">
+    <button class="btn-back" onclick="showScreen('screenHome')">← Back</button>
+    <div class="rules-header">
+      <h2>📖 How to Play</h2>
+      <p>Simple rules for maximum fun</p>
+    </div>
+    <div class="rules-list">
+      <div class="rule-item">
+        <div class="rule-num">1</div>
+        <div class="rule-content"><h4>Add Players</h4><p>Enter 2–10 player names in the setup screen. The more, the merrier!</p></div>
+      </div>
+      <div class="rule-item">
+        <div class="rule-num">2</div>
+        <div class="rule-content"><h4>Pick a Mode</h4><p>Select your difficulty and category preferences before starting. Choose what fits your group.</p></div>
+      </div>
+      <div class="rule-item">
+        <div class="rule-num">3</div>
+        <div class="rule-content"><h4>Your Turn</h4><p>When it's your turn, choose <strong>Truth</strong> (answer a question honestly) or <strong>Dare</strong> (complete a challenge).</p></div>
+      </div>
+      <div class="rule-item">
+        <div class="rule-num">4</div>
+        <div class="rule-content"><h4>No Chickening Out</h4><p>If you refuse a Truth or can't complete a Dare, you get a penalty decided by the group. Be brave!</p></div>
+      </div>
+      <div class="rule-item">
+        <div class="rule-num">5</div>
+        <div class="rule-content"><h4>Skip Wisely</h4><p>Each player can skip once per round. Use it wisely — you only get one free pass!</p></div>
+      </div>
+      <div class="rule-item">
+        <div class="rule-num">6</div>
+        <div class="rule-content"><h4>Keep It Fun!</h4><p>Always respect others. Keep questions and dares light-hearted and appropriate for all players.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SETTINGS SCREEN ===== -->
+  <section class="screen" id="screenSettings">
+    <button class="btn-back" onclick="showScreen('screenHome')">← Back</button>
+    <div class="settings-header">
+      <h2>⚙️ Settings</h2>
+      <p>Customize your experience</p>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info"><h4>Dark Mode</h4><p>Toggle dark / light theme</p></div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="settingTheme" checked onchange="toggleTheme()"/>
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+    <div class="setting-row">
+      <div class="setting-info"><h4>Sound Effects</h4><p>Play sounds on interactions</p></div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="settingSound" checked onchange="toggleSoundSetting()"/>
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+    <div class="setting-row">
+      <div class="setting-info"><h4>Animations</h4><p>Enable card flip and transitions</p></div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="settingAnim" checked/>
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+    <div class="setting-row">
+      <div class="setting-info"><h4>Confetti</h4><p>Celebrate with confetti on game end</p></div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="settingConfetti" checked/>
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+    <div class="setting-row">
+      <div class="setting-info"><h4>Auto Next Turn</h4><p>Automatically advance after 10 seconds</p></div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="settingAutoNext"/>
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+  </section>
+
+  <!-- ===== END SCREEN ===== -->
+  <section class="screen" id="screenEnd">
+    <div class="end-screen" style="width:100%">
+      <div class="end-trophy">🏆</div>
+      <div class="end-title">Game Over!</div>
+      <p class="end-sub">What an amazing round! Hope you had a blast<br>and made some unforgettable memories! 🎉</p>
+      <div class="end-stats">
+        <div class="end-stat"><div class="stat-num" id="statTurns">0</div><div class="stat-label">Total Turns</div></div>
+        <div class="end-stat"><div class="stat-num" id="statTruths">0</div><div class="stat-label">Truths</div></div>
+        <div class="end-stat"><div class="stat-num" id="statDares">0</div><div class="stat-label">Dares</div></div>
+        <div class="end-stat"><div class="stat-num" id="statSkips">0</div><div class="stat-label">Skips</div></div>
+      </div>
+      <div class="end-btns" style="display:flex; flex-wrap:wrap; justify-content:center; gap:12px;">
+        <button class="btn-play-again" onclick="playAgain()">🔄 Play Again</button>
+        <button class="btn-home" onclick="showScreen('screenHome')">🏠 Home</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+<!-- Confetti canvas -->
+<canvas id="confetti-canvas"></canvas>
+
+<script>
+/* =====================================================
+   TRUTH & DARE — GAME LOGIC
+   ===================================================== */
+
+// ===== STATE =====
+let state = {
+  players: [],
+  currentIdx: 0,
+  turn: 1,
+  difficulty: 'easy',
+  categories: ['fun','funny','challenge','icebreaker','deep'],
+  soundOn: true,
+  cardFlipped: false,
+  usedTruths: new Set(),
+  usedDares: new Set(),
+  stats: { turns: 0, truths: 0, dares: 0, skips: 0 },
+  currentType: null,
+  autoNextTimer: null,
+};
+
+// ===== QUESTION BANK =====
+const QUESTIONS = {
+  truth: [
+    // Fun - Easy
+    { text: "What's the most embarrassing thing you've done in public?", diff: "easy", cat: "fun" },
+    { text: "What's the weirdest food combination you've ever tried?", diff: "easy", cat: "fun" },
+    { text: "What song do you secretly love but would be embarrassed to admit?", diff: "easy", cat: "fun" },
+    { text: "What's the silliest reason you've ever cried?", diff: "easy", cat: "funny" },
+    { text: "Have you ever talked to yourself in a mirror? What did you say?", diff: "easy", cat: "funny" },
+    { text: "What's your most unusual talent?", diff: "easy", cat: "icebreaker" },
+    { text: "What's the funniest thing that happened to you this week?", diff: "easy", cat: "funny" },
+    { text: "What's the most ridiculous lie you've ever told?", diff: "easy", cat: "fun" },
+    { text: "Do you have a secret handshake with anyone?", diff: "easy", cat: "icebreaker" },
+    { text: "What cartoon character do you relate to most?", diff: "easy", cat: "icebreaker" },
+    { text: "What's a movie or show you've watched more than 5 times?", diff: "easy", cat: "fun" },
+    { text: "What's your guilty pleasure snack?", diff: "easy", cat: "fun" },
+    { text: "Have you ever accidentally sent a text to the wrong person?", diff: "easy", cat: "funny" },
+    { text: "What's the worst haircut you've ever had?", diff: "easy", cat: "funny" },
+    { text: "What's the most childish thing you still do?", diff: "easy", cat: "fun" },
+
+    // Medium
+    { text: "What's the bravest thing you've ever done?", diff: "medium", cat: "challenge" },
+    { text: "What's your biggest pet peeve about people?", diff: "medium", cat: "fun" },
+    { text: "What's the most spontaneous thing you've ever done?", diff: "medium", cat: "challenge" },
+    { text: "What's your biggest regret from the past year?", diff: "medium", cat: "deep" },
+    { text: "If you could change one thing about yourself, what would it be?", diff: "medium", cat: "deep" },
+    { text: "What's a habit you have that you wish you could break?", diff: "medium", cat: "deep" },
+    { text: "What's the most rebellious thing you've done?", diff: "medium", cat: "challenge" },
+    { text: "Who was your first celebrity crush?", diff: "medium", cat: "fun" },
+    { text: "What's the most money you've ever spent on something stupid?", diff: "medium", cat: "funny" },
+    { text: "Have you ever ghosted someone? Tell us why.", diff: "medium", cat: "fun" },
+    { text: "What's a secret talent you've never told anyone?", diff: "medium", cat: "icebreaker" },
+    { text: "What's the most awkward date you've ever been on?", diff: "medium", cat: "funny" },
+    { text: "What's the biggest misunderstanding you've had with someone?", diff: "medium", cat: "deep" },
+    { text: "What's something you pretend to like but secretly can't stand?", diff: "medium", cat: "funny" },
+    { text: "Have you ever cheated at a board game?", diff: "medium", cat: "fun" },
+
+    // Hard
+    { text: "What's the most embarrassing thing a family member has done?", diff: "hard", cat: "fun" },
+    { text: "What's your deepest fear that you've never told anyone?", diff: "hard", cat: "deep" },
+    { text: "If you had to delete all your social media except one, which one stays?", diff: "hard", cat: "challenge" },
+    { text: "What's the worst thing you've ever done that you got away with?", diff: "hard", cat: "challenge" },
+    { text: "What's a belief you hold that most people in this room would disagree with?", diff: "hard", cat: "deep" },
+    { text: "Have you ever done something that you know was wrong but you'd do it again?", diff: "hard", cat: "deep" },
+    { text: "What's one thing you hope your parents never find out about?", diff: "hard", cat: "challenge" },
+    { text: "What's the most selfish thing you've ever done?", diff: "hard", cat: "deep" },
+    { text: "Who in this room would you NOT invite to your wedding?", diff: "hard", cat: "challenge" },
+    { text: "What's the biggest lie you've ever told and gotten away with?", diff: "hard", cat: "challenge" },
+
+    // 🌶️ Spicy
+    { text: "What's the wildest thing you've ever done in public?", diff: "hard", cat: "spicy" },
+    { text: "Have you ever cheated on someone? If yes, explain.", diff: "hard", cat: "spicy" },
+    { text: "What's your biggest guilty pleasure?", diff: "medium", cat: "spicy" },
+    { text: "What's the most embarrassing thing you've searched online?", diff: "medium", cat: "spicy" },
+    { text: "Have you ever had a crush on someone in this room?", diff: "medium", cat: "spicy" },
+    { text: "What's the weirdest habit you have?", diff: "easy", cat: "spicy" },
+    { text: "Have you ever been caught doing something you shouldn't have?", diff: "medium", cat: "spicy" },
+    { text: "What's the riskiest text you've ever sent?", diff: "hard", cat: "spicy" },
+    { text: "What's one secret you've never told anyone?", diff: "hard", cat: "spicy" },
+    { text: "If you had to date one person in this room, who would it be?", diff: "medium", cat: "spicy" },
+    { text: "What's the most inappropriate place you've hooked up with someone?", diff: "hard", cat: "spicy" },
+    { text: "What's your wildest fantasy?", diff: "hard", cat: "spicy" },
+    { text: "What's one thing you regret doing in a past relationship?", diff: "hard", cat: "spicy" },
+    { text: "What's the most embarrassing nickname you've ever had?", diff: "easy", cat: "spicy" },
+    { text: "Have you ever lied about your age to impress someone?", diff: "easy", cat: "spicy" },
+    { text: "What's the weirdest thing you've done when you were alone?", diff: "medium", cat: "spicy" },
+    { text: "What's the craziest thing you've ever done while drunk?", diff: "hard", cat: "spicy" },
+    { text: "What's the most expensive gift you've ever received from a partner?", diff: "medium", cat: "spicy" },
+    { text: "Have you ever sent a risky photo to someone?", diff: "hard", cat: "spicy" },
+    { text: "What's the most awkward date you've ever been on?", diff: "medium", cat: "spicy" },
+  ],
+  dare: [
+    // Easy
+    { text: "Do your best robot dance for 30 seconds.", diff: "easy", cat: "fun" },
+    { text: "Speak in an accent for the next 3 turns.", diff: "easy", cat: "funny" },
+    { text: "Let someone else post a story from your phone (nothing personal).", diff: "easy", cat: "challenge" },
+    { text: "Do 10 jumping jacks right now.", diff: "easy", cat: "challenge" },
+    { text: "Make up a rap about the person to your left.", diff: "easy", cat: "funny" },
+    { text: "Talk like a pirate for the next 2 minutes.", diff: "easy", cat: "funny" },
+    { text: "Imitate a celebrity until someone guesses who it is.", diff: "easy", cat: "fun" },
+    { text: "Do your best runway walk across the room.", diff: "easy", cat: "funny" },
+    { text: "Wink at every person when they speak for the next round.", diff: "easy", cat: "fun" },
+    { text: "Try to lick your elbow.", diff: "easy", cat: "funny" },
+    { text: "Let someone draw a funny face on your arm with a marker.", diff: "easy", cat: "fun" },
+    { text: "Sing the alphabet backwards as fast as you can.", diff: "easy", cat: "challenge" },
+    { text: "Make the funniest face you can and hold it for 10 seconds.", diff: "easy", cat: "funny" },
+    { text: "Do a dramatic movie villain monologue about your least favorite food.", diff: "easy", cat: "funny" },
+    { text: "Pat your head and rub your belly at the same time for 15 seconds.", diff: "easy", cat: "fun" },
+
+    // Medium
+    { text: "Call a random contact and sing Happy Birthday to them.", diff: "medium", cat: "challenge" },
+    { text: "Do a dramatic reading of the last text message you sent.", diff: "medium", cat: "funny" },
+    { text: "Let the group choose a new nickname for you that lasts the rest of the game.", diff: "medium", cat: "fun" },
+    { text: "Text your crush or a close friend: 'I have a confession to make...' then screenshot.", diff: "medium", cat: "challenge" },
+    { text: "Do your best impression of every player in the game.", diff: "medium", cat: "funny" },
+    { text: "Post a funny selfie to your story right now.", diff: "medium", cat: "challenge" },
+    { text: "Eat a spoonful of something weird from the fridge.", diff: "medium", cat: "challenge" },
+    { text: "Let someone go through your camera roll for 30 seconds.", diff: "medium", cat: "challenge" },
+    { text: "Speak only in questions for the next 5 minutes.", diff: "medium", cat: "fun" },
+    { text: "Do 5 push-ups on the spot.", diff: "medium", cat: "challenge" },
+    { text: "Let the group change your phone wallpaper.", diff: "medium", cat: "funny" },
+    { text: "Describe yourself using only animal metaphors.", diff: "medium", cat: "funny" },
+    { text: "Recreate a famous painting using only things in the room.", diff: "medium", cat: "fun" },
+    { text: "Try to juggle 3 objects for 20 seconds.", diff: "medium", cat: "challenge" },
+    { text: "Let the player to your right style your hair for one minute.", diff: "medium", cat: "fun" },
+
+    // Hard
+    { text: "Call someone you haven't spoken to in over a year and have a 2-minute conversation.", diff: "hard", cat: "challenge" },
+    { text: "Let the group read your last 5 search history entries out loud.", diff: "hard", cat: "challenge" },
+    { text: "Do a 60-second stand-up comedy routine about life.", diff: "hard", cat: "challenge" },
+    { text: "Let the group write a tweet from your account (nothing offensive) and post it.", diff: "hard", cat: "challenge" },
+    { text: "Sing a full minute of a song chosen by the group, no stopping.", diff: "hard", cat: "challenge" },
+    { text: "Close your eyes and let someone put a mystery food in your mouth.", diff: "hard", cat: "challenge" },
+    { text: "Let someone give you a makeover using whatever they have.", diff: "hard", cat: "fun" },
+    { text: "Do the worm on the floor.", diff: "hard", cat: "challenge" },
+    { text: "Pretend to propose marriage to an inanimate object in the room.", diff: "hard", cat: "funny" },
+    { text: "Let the group style your outfit from existing clothes in the room.", diff: "hard", cat: "challenge" },
+
+    // 🌶️ Spicy
+    { text: "Do your best seductive dance for 1 minute.", diff: "hard", cat: "spicy" },
+    { text: "Send a flirty text to your ex right now.", diff: "hard", cat: "spicy" },
+    { text: "Speak in a sultry tone for the next three turns.", diff: "medium", cat: "spicy" },
+    { text: "Take a selfie and send it to the first person in your contact list.", diff: "medium", cat: "spicy" },
+    { text: "Do 10 push-ups while someone sits on your back.", diff: "hard", cat: "spicy" },
+    { text: "Let the group write a message to someone on your phone and send it.", diff: "hard", cat: "spicy" },
+    { text: "Call your crush and confess your feelings live.", diff: "hard", cat: "spicy" },
+    { text: "Pretend to be someone's pet for the next 5 minutes.", diff: "medium", cat: "spicy" },
+    { text: "Let the group pick a nickname for you — you must use it for the rest of the game.", diff: "easy", cat: "spicy" },
+    { text: "Do your best celebrity impression for 1 full minute.", diff: "medium", cat: "spicy" },
+    { text: "Exchange one item of clothing with someone in the room.", diff: "hard", cat: "spicy" },
+    { text: "Eat a spoonful of the spiciest condiment in the room.", diff: "hard", cat: "spicy" },
+    { text: "Allow someone to scroll through your phone gallery for 30 seconds.", diff: "hard", cat: "spicy" },
+    { text: "Sing a love song to the person on your right.", diff: "medium", cat: "spicy" },
+    { text: "Dance like no one's watching for 2 full minutes.", diff: "easy", cat: "spicy" },
+    { text: "Act like your favorite animal — no words — until your next turn.", diff: "medium", cat: "spicy" },
+    { text: "Let someone post something completely random on your social media right now.", diff: "hard", cat: "spicy" },
+    { text: "Do 20 squats while complimenting everyone in the room.", diff: "medium", cat: "spicy" },
+    { text: "Pretend to be a waiter and serve drinks to everyone in the room.", diff: "easy", cat: "spicy" },
+  ]
+};
+
+// ===== AUDIO (Web Audio API) =====
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playBeep(freq = 440, type = 'sine', dur = 0.1, vol = 0.2) {
+  if (!state.soundOn) return;
+  try {
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + dur);
+  } catch(e) {}
+}
+function playTruthSound() {
+  playBeep(440, 'triangle', 0.15, 0.3);
+  setTimeout(() => playBeep(550, 'triangle', 0.15, 0.25), 80);
+  setTimeout(() => playBeep(660, 'triangle', 0.2, 0.3), 160);
+}
+function playDareSound() {
+  playBeep(200, 'sawtooth', 0.08, 0.25);
+  setTimeout(() => playBeep(300, 'sawtooth', 0.08, 0.2), 60);
+  setTimeout(() => playBeep(400, 'sawtooth', 0.12, 0.25), 120);
+}
+function playClickSound() { playBeep(600, 'sine', 0.06, 0.15); }
+function playWinSound() {
+  [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => playBeep(f, 'triangle', 0.2, 0.3), i * 100));
+}
+
+// ===== SCREEN MANAGEMENT =====
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  playClickSound();
+}
+
+// ===== THEME =====
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('btnTheme').textContent = isDark ? '☀️' : '🌙';
+  document.getElementById('settingTheme').checked = !isDark;
+}
+document.getElementById('btnTheme').addEventListener('click', () => {
+  toggleTheme();
+  document.getElementById('settingTheme').checked =
+    document.documentElement.getAttribute('data-theme') === 'dark';
+});
+
+// ===== SOUND TOGGLE =====
+function toggleSoundSetting() {
+  state.soundOn = document.getElementById('settingSound').checked;
+  document.getElementById('btnSound').textContent = state.soundOn ? '🔊' : '🔇';
+}
+document.getElementById('btnSound').addEventListener('click', () => {
+  state.soundOn = !state.soundOn;
+  document.getElementById('btnSound').textContent = state.soundOn ? '🔊' : '🔇';
+  document.getElementById('settingSound').checked = state.soundOn;
+});
+
+// ===== PLAYERS =====
+function addPlayer() {
+  const inp = document.getElementById('playerInput');
+  const name = inp.value.trim();
+  if (!name) return;
+  if (state.players.length >= 10) { showToast('Max 10 players!'); return; }
+  if (state.players.find(p => p.toLowerCase() === name.toLowerCase())) { showToast('Player already added!'); return; }
+  state.players.push(name);
+  inp.value = '';
+  renderPlayers();
+  updateStartBtn();
+  playClickSound();
+}
+document.getElementById('playerInput').addEventListener('keydown', e => { if (e.key === 'Enter') addPlayer(); });
+
+function removePlayer(i) {
+  state.players.splice(i, 1);
+  renderPlayers();
+  updateStartBtn();
+  playClickSound();
+}
+function renderPlayers() {
+  const list = document.getElementById('playersList');
+  list.innerHTML = state.players.map((p, i) =>
+    `<div class="player-tag">${p}<button onclick="removePlayer(${i})" title="Remove">✕</button></div>`
+  ).join('');
+}
+function updateStartBtn() {
+  document.getElementById('btnStartGame').disabled = state.players.length < 2;
+}
+
+// ===== CHIPS =====
+function selectChip(el, type) {
+  document.querySelectorAll(`.chip[data-type="${type}"]`).forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  if (type === 'diff') state.difficulty = el.dataset.val;
+  playClickSound();
+}
+function toggleCat(el) {
+  el.classList.toggle('active');
+  state.categories = [...document.querySelectorAll('.chip[data-type="cat"].active')].map(c => c.dataset.val);
+  if (state.categories.length === 0) { el.classList.add('active'); state.categories = [el.dataset.val]; }
+  playClickSound();
+}
+
+// ===== GAME START =====
+function startGame() {
+  state.currentIdx = 0;
+  state.turn = 1;
+  state.usedTruths = new Set();
+  state.usedDares = new Set();
+  state.stats = { turns: 0, truths: 0, dares: 0, skips: 0 };
+  state.cardFlipped = false;
+  showScreen('screenGame');
+  renderPlayerDots();
+  showPlayerSpin();
+}
+
+function renderPlayerDots() {
+  const dots = document.getElementById('playersDots');
+  dots.innerHTML = state.players.map((_, i) =>
+    `<div class="player-dot ${i === state.currentIdx ? 'active' : ''}" id="dot-${i}"></div>`
+  ).join('');
+}
+function updateDots() {
+  document.querySelectorAll('.player-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === state.currentIdx);
+  });
+}
+
+function showPlayerSpin() {
+  // Animate through names
+  const spinArea = document.getElementById('playerSpinArea');
+  const spinName = document.getElementById('spinName');
+  const gamePlay = document.getElementById('gamePlayArea');
+  gamePlay.style.display = 'none';
+  spinArea.classList.add('show');
+
+  // Update current player display
+  document.getElementById('currentPlayerName').textContent = state.players[state.currentIdx];
+  document.getElementById('turnCounter').textContent = `Turn ${state.turn}`;
+  spinName.textContent = state.players[state.currentIdx] + '!';
+  updateDots();
+
+  // Update progress
+  const progress = ((state.turn - 1) / (state.players.length * 3)) * 100;
+  document.getElementById('progressFill').style.width = Math.min(progress, 100) + '%';
+}
+
+function confirmTurn() {
+  const spinArea = document.getElementById('playerSpinArea');
+  const gamePlay = document.getElementById('gamePlayArea');
+  spinArea.classList.remove('show');
+  gamePlay.style.display = 'flex';
+
+  // Reset card
+  resetCardVisual();
+  document.getElementById('actionBtns').style.display = 'grid';
+  document.getElementById('secondaryBtns').style.display = 'none';
+  playClickSound();
+}
+
+// ===== PICK CARD =====
+function pickCard(type, e) {
+  if (state.cardFlipped) return;
+  state.cardFlipped = true;
+  state.currentType = type;
+
+  // Ripple effect
+  const btn = e.currentTarget;
+  const rect = btn.getBoundingClientRect();
+  const r = document.createElement('span');
+  r.className = 'ripple';
+  r.style.width = r.style.height = Math.max(rect.width, rect.height) * 2 + 'px';
+  r.style.left = (e.clientX - rect.left - parseInt(r.style.width)/2) + 'px';
+  r.style.top = (e.clientY - rect.top - parseInt(r.style.height)/2) + 'px';
+  btn.appendChild(r);
+  setTimeout(() => r.remove(), 700);
+
+  // Get question
+  const q = getQuestion(type);
+  if (!q) { showToast("No more questions! Starting fresh 🔄"); state.usedTruths = new Set(); state.usedDares = new Set(); }
+  const question = q || getQuestion(type);
+
+  // Setup card back
+  const cardBack = document.getElementById('cardBack');
+  const badge = document.getElementById('cardTypeBadge');
+  const qEl = document.getElementById('cardQuestion');
+  const diffEl = document.getElementById('cardDiffLabel');
+
+  cardBack.className = `card-back ${type}`;
+  badge.textContent = type === 'truth' ? 'TRUTH' : 'DARE';
+  qEl.textContent = question ? question.text : 'Answer any question from your group!';
+  const diffEmoji = { easy: '😊', medium: '🔥', hard: '💀' };
+  diffEl.innerHTML = `<div class="diff-dot"></div> ${diffEmoji[question?.diff || 'easy']} ${(question?.diff || 'easy').charAt(0).toUpperCase() + (question?.diff || 'easy').slice(1)}`;
+
+  // Animate flip
+  const animEnabled = document.getElementById('settingAnim').checked;
+  if (animEnabled) {
+    document.getElementById('gameCard').classList.add('flipped');
+  } else {
+    document.getElementById('gameCard').style.transform = 'rotateY(180deg)';
+  }
+
+  // Sound
+  if (type === 'truth') playTruthSound(); else playDareSound();
+
+  // Update stats
+  state.stats.turns++;
+  if (type === 'truth') state.stats.truths++; else state.stats.dares++;
+
+  // Show secondary buttons
+  setTimeout(() => {
+    document.getElementById('actionBtns').style.display = 'none';
+    document.getElementById('secondaryBtns').style.display = 'flex';
+
+    // Auto next
+    if (document.getElementById('settingAutoNext').checked) {
+      clearTimeout(state.autoNextTimer);
+      state.autoNextTimer = setTimeout(nextTurn, 10000);
+    }
+  }, 700);
+}
+
+function getQuestion(type) {
+  const pool = QUESTIONS[type].filter(q => {
+    const diffOk = state.difficulty === 'all' || q.diff === state.difficulty;
+    const catOk = state.categories.includes(q.cat);
+    const usedSet = type === 'truth' ? state.usedTruths : state.usedDares;
+    return diffOk && catOk && !usedSet.has(q.text);
+  });
+  if (pool.length === 0) return null;
+  const q = pool[Math.floor(Math.random() * pool.length)];
+  (type === 'truth' ? state.usedTruths : state.usedDares).add(q.text);
+  return q;
+}
+
+function skipQuestion() {
+  state.stats.skips++;
+  state.stats.turns = Math.max(0, state.stats.turns - 1);
+  if (state.currentType === 'truth') state.stats.truths = Math.max(0, state.stats.truths - 1);
+  else state.stats.dares = Math.max(0, state.stats.dares - 1);
+  showToast('Question skipped! Use your free pass wisely 😅');
+  playClickSound();
+  nextTurn();
+}
+
+function resetCard() {
+  // Get new question for same type
+  if (!state.currentType) return;
+  const q = getQuestion(state.currentType);
+  if (!q) { showToast('No more questions! 🎉 All done!'); return; }
+  const qEl = document.getElementById('cardQuestion');
+  qEl.style.opacity = '0';
+  setTimeout(() => { qEl.textContent = q.text; qEl.style.opacity = '1'; }, 200);
+  qEl.style.transition = 'opacity 0.3s';
+  playClickSound();
+}
+
+function resetCardVisual() {
+  const card = document.getElementById('gameCard');
+  const animEnabled = document.getElementById('settingAnim').checked;
+  card.style.transition = 'none';
+  card.classList.remove('flipped');
+  card.style.transform = '';
+  setTimeout(() => { card.style.transition = ''; }, 50);
+  state.cardFlipped = false;
+  state.currentType = null;
+}
+
+function nextTurn() {
+  clearTimeout(state.autoNextTimer);
+  state.currentIdx = (state.currentIdx + 1) % state.players.length;
+  state.turn++;
+  playClickSound();
+  showPlayerSpin();
+}
+
+function endGame() {
+  clearTimeout(state.autoNextTimer);
+  document.getElementById('statTurns').textContent = state.stats.turns;
+  document.getElementById('statTruths').textContent = state.stats.truths;
+  document.getElementById('statDares').textContent = state.stats.dares;
+  document.getElementById('statSkips').textContent = state.stats.skips;
+  showScreen('screenEnd');
+  playWinSound();
+  if (document.getElementById('settingConfetti').checked) launchConfetti();
+}
+
+function playAgain() {
+  showScreen('screenSetup');
+  playClickSound();
+}
+
+// ===== TOAST =====
+function showToast(msg, dur = 2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// ===== CONFETTI =====
+function launchConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const colors = ['#6c63ff','#f43f5e','#38bdf8','#fbbf24','#34d399','#fb923c','#a78bfa'];
+  const particles = Array.from({ length: 180 }, () => ({
+    x: Math.random() * canvas.width,
+    y: -20,
+    r: Math.random() * 7 + 3,
+    d: Math.random() * 5 + 2,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    tilt: Math.random() * 10 - 5,
+    tiltAngle: 0,
+    tiltSpeedX: Math.random() * 0.15 + 0.05,
+    opacity: 1,
+    shape: Math.random() > 0.5 ? 'circle' : 'rect',
+  }));
+
+  let frame = 0;
+  const maxFrames = 220;
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      ctx.save();
+      ctx.globalAlpha = p.opacity;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      if (p.shape === 'circle') {
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      } else {
+        ctx.rect(p.x - p.r, p.y - p.r, p.r * 2, p.r);
+      }
+      ctx.fill();
+      ctx.restore();
+      p.y += p.d;
+      p.x += Math.sin(p.tiltAngle) * 2;
+      p.tiltAngle += p.tiltSpeedX;
+      if (frame > maxFrames * 0.6) p.opacity -= 0.01;
+    });
+    frame++;
+    if (frame < maxFrames) requestAnimationFrame(draw);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  draw();
+}
+
+// ===== INIT =====
+(function init() {
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e => {
+    const gameActive = document.getElementById('screenGame').classList.contains('active');
+    if (!gameActive) return;
+    if (e.key === 'ArrowRight' || e.key === 'n') nextTurn();
+  });
+
+  // Enter to add player
+  document.getElementById('playerInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addPlayer();
+  });
+})();
+</script>
+</body>
+</html>
